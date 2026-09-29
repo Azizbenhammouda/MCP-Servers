@@ -21,18 +21,36 @@ func requireEnv(key string) string {
 	return val
 }
 
-func main() {
-	token := requireEnv("WHATSAPP_TOKEN")
-	phoneNumberID := requireEnv("WHATSAPP_PHONE_NUMBER_ID")
-	templateName := requireEnv("WHATSAPP_TEMPLATE_NAME")
+var token = requireEnv("WHATSAPP_TOKEN")
+var phoneNumberID = requireEnv("WHATSAPP_PHONE_NUMBER_ID")
+var templateName = requireEnv("WHATSAPP_TEMPLATE_NAME")
 
-	_ = token
-	_ = phoneNumberID
-	_ = templateName
+func send_whatsapp_notification(ctx context.Context, req *mcp.CallToolRequest, args SendNotificationInput) (*mcp.CallToolResult, any, error) {
+	err := SendWhatsAppMessage(token, phoneNumberID, templateName, args.To, args.Message)
+	if err != nil {
+		return &mcp.CallToolResult{
+			IsError: true,
+			Content: []mcp.Content{
+				&mcp.TextContent{Text: err.Error()},
+			},
+		}, nil, nil
+	}
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			&mcp.TextContent{Text: "Message sent !"},
+		},
+	}, nil, nil
+}
+
+func main() {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    "WhatsAppServer",
 		Version: "1.0.0",
 	}, nil)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "send_whatsapp_notification",
+		Description: "Send a WhatsApp notification message to a given phone number",
+	}, send_whatsapp_notification)
 	err := server.Run(context.Background(), &mcp.StdioTransport{})
 	if err != nil {
 		log.Fatalf("Server failure %v", err)

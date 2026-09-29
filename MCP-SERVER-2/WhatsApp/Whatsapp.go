@@ -31,7 +31,7 @@ type MessagePayload struct {
 	Template         TemplateDef `json:"template"`
 }
 
-func sendWhatsAppMessage(token, phoneNumberID, templateName, to, message string) error {
+func SendWhatsAppMessage(token, phoneNumberID, templateName, to, message string) error {
 	url := fmt.Sprintf("https://graph.facebook.com/v21.0/%s/messages", phoneNumberID)
 	sent := MessagePayload{
 		MessagingProduct: "whatsapp",
